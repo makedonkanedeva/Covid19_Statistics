@@ -49,8 +49,10 @@ public class DiagnosisController {
             model.addAttribute("error",error);
         }
 
+        LocalDateTime dateTime = LocalDateTime.now();
         List<Visit> visits = this.visitService.findAll();
         model.addAttribute("visits", visits);
+        model.addAttribute("date", dateTime);
         model.addAttribute("bodyContent", "add-diagnosis");
 
         return "master-template";
@@ -73,7 +75,9 @@ public class DiagnosisController {
     public String editDiagnose(@PathVariable Long id, Model model){
         Diagnosis diagnose = this.diagnosisService.findByDiagnoseId(id);
         List<Visit> visits = this.visitService.findAll();
+        LocalDateTime dateTime = LocalDateTime.now();
         model.addAttribute("diagnose", diagnose);
+        model.addAttribute("date", dateTime);
         model.addAttribute("visits", visits);
         model.addAttribute("bodyContent", "add-diagnosis");
 

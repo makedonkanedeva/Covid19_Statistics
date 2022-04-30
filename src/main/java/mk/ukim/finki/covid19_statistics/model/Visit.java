@@ -6,6 +6,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Data
 @Entity
@@ -22,6 +23,9 @@ public class Visit {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Patient patient;
+
+
+
 
     public Visit() {
     }

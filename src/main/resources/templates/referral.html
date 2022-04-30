@@ -32,7 +32,7 @@
                 <td th:text="${referral.getSsnPatient().getName()}"></td>
                 <td th:text="${referral.getSsnPatient().getSurname()}"></td>
                 <td th:text="${referral.getSsnPatient().getSsn()}"></td>
-                <td th:text="${referral.getTerm()}"></td>
+                <td th:text="${#temporals.format(referral.getTerm(), 'dd-MM-yyyy HH:mm')}"></td>
                 <td th:text="${referral.getForwardBy().getName()}"></td>
                 <td th:text="${referral.getForwardBy().getSurname()}"></td>
                 <td th:text="${referral.getForwardBy().getSpecialty().getName()}"></td>
@@ -53,6 +53,14 @@
                       <button type="submit"
                               class="btn btn-block btn-danger">
                         Избриши
+                      </button>
+                    </form>
+                  </th:block>
+                  <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+                    <form th:action="@{'/referrals/{id}/pdf/generate' (id=${referral.getId()})}">
+                      <button type="submit"
+                              class="btn btn-block btn-dark add-product-btn">
+                        Преземи
                       </button>
                     </form>
                   </th:block>

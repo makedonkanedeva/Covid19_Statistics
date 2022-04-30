@@ -3,6 +3,8 @@ package mk.ukim.finki.covid19_statistics.service;
 import mk.ukim.finki.covid19_statistics.model.Diagnosis;
 import mk.ukim.finki.covid19_statistics.model.Visit;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 

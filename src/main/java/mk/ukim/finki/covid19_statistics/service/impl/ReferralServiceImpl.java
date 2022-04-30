@@ -1,5 +1,10 @@
 package mk.ukim.finki.covid19_statistics.service.impl;
 
+import com.lowagie.text.*;
+import com.lowagie.text.Font;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.PdfEncodings;
+import com.lowagie.text.pdf.PdfWriter;
 import mk.ukim.finki.covid19_statistics.model.Doctor;
 import mk.ukim.finki.covid19_statistics.model.Patient;
 import mk.ukim.finki.covid19_statistics.model.Referral;
@@ -9,10 +14,20 @@ import mk.ukim.finki.covid19_statistics.repository.PatientRepository;
 import mk.ukim.finki.covid19_statistics.repository.ReferralRepository;
 import mk.ukim.finki.covid19_statistics.repository.VisitRepository;
 import mk.ukim.finki.covid19_statistics.service.ReferralService;
+
+import org.apache.tomcat.util.buf.Utf8Encoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
+import java.awt.*;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static com.lowagie.text.FontFactory.*;
 
 @Service
 public class ReferralServiceImpl implements ReferralService {
@@ -83,9 +98,7 @@ public class ReferralServiceImpl implements ReferralService {
         }
         Doctor doctor = this.doctorRepository.findBySsn(forwardBySsn);
         Doctor doctor2 = this.doctorRepository.findBySsn(forwardToSsn);
-        if(visitRepository.findByTerm(term) != null){
-            throw new TermIsNotAvailableException(term);
-        }
+
         if(term.isBefore(LocalDateTime.now())){
             throw new TermIsNotAllowedException();
         }
@@ -122,6 +135,53 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     public Referral findById(Long id) {
         return this.referralRepository.findById(id).orElseThrow(() -> new ReferralNotFoundException(id));
+    }
+
+    @Override
+    public void export(HttpServletResponse response,Long idReferral) throws IOException {
+        Document document = new Document(PageSize.A4);
+        PdfWriter.getInstance(document,response.getOutputStream());
+
+        document.open();
+
+
+        String patientName = this.referralRepository.findById(idReferral).get().getSsnPatient().getNameAndSurname();
+        LocalDateTime term = this.referralRepository.findById(idReferral).get().getTerm();
+        Long patientSsn = this.referralRepository.findById(idReferral).get().getSsnPatient().getSsn();
+        String doctorForwards = this.referralRepository.findById(idReferral).get().getForwardBy().getNameAndSurname();
+        String doctorForwarded = this.referralRepository.findById(idReferral).get().getForwardTo().getNameAndSurname();
+        String specialty = this.referralRepository.findById(idReferral).get().getForwardTo().getSpecialty().getName();
+
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        String termReferral = term.format(format);
+
+
+        Paragraph paragraph2 = new Paragraph("Информации за упатот: ");
+        Paragraph paragraph = new Paragraph("Пациент: " + patientName);
+        Paragraph paragraph3 = new Paragraph("Термин: " + termReferral);
+        Paragraph paragraph4 = new Paragraph("ЕМБГ: " + patientSsn);
+        Paragraph paragraph5 = new Paragraph("Доктор кој препраќа: " + doctorForwards);
+        Paragraph paragraph6 = new Paragraph("Доктор кај кој е препратен пациентот: " + doctorForwarded);
+        Paragraph paragraph7 = new Paragraph("Специјалност на доктор: " + specialty);
+
+        paragraph.setAlignment(Paragraph.ALIGN_LEFT);
+        paragraph2.setAlignment(Paragraph.ALIGN_CENTER);
+        paragraph3.setAlignment(Paragraph.ALIGN_LEFT);
+        paragraph4.setAlignment(Paragraph.ALIGN_LEFT);
+        paragraph5.setAlignment(Paragraph.ALIGN_LEFT);
+        paragraph6.setAlignment(Paragraph.ALIGN_LEFT);
+        paragraph7.setAlignment(Paragraph.ALIGN_LEFT);
+
+
+        paragraph2.setSpacingAfter(15);
+        document.add(paragraph2);
+        document.add(paragraph);
+        document.add(paragraph3);
+        document.add(paragraph4);
+        document.add(paragraph5);
+        document.add(paragraph6);
+        document.add(paragraph7);
+        document.close();
     }
 
 

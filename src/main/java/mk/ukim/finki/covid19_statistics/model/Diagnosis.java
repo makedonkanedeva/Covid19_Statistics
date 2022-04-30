@@ -3,6 +3,8 @@ package mk.ukim.finki.covid19_statistics.model;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
 
@@ -24,6 +26,13 @@ public class Diagnosis {
         this.visits.remove(visits.size()-1);
         this.visits.add(visit);
     }
+
+    public String formatTime(LocalDateTime term){
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        String newTerm = term.format(format);
+        return newTerm;
+    }
+
     public Diagnosis()
     {
 

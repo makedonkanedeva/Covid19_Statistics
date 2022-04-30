@@ -24,9 +24,9 @@
                     <select name="termOfVisit" id="termOfVisit" class="form-control">
                         <option th:each="visit : ${visits}"
                                 th:value="${visit.getTerm()}"
-
+                                th:if="${visit.getTerm() < date}"
+                                th:text = "${visit.getTerm()}">
                         </option>
-
                     </select>
                 </div>
 

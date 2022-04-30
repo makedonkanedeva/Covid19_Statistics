@@ -39,7 +39,7 @@
                   <td th:text="${diagnose.getName()}"></td>
                 <td th:text="${diagnose.getDescription()}"></td>
                 <td th:each="visit: ${visits}" th:if="${diagnose.getVisits().contains(visit)}"
-                    th:text="${visit.getTerm()}"></td>
+                    th:text="${#temporals.format(visit.getTerm(), 'dd-MM-yyyy HH:mm')}"></td>
                 <td th:each="visit: ${visits}" th:if="${diagnose.getVisits().contains(visit)}"
                     th:text="${visit.getDoctor().getName()}"></td>
                 <td th:each="visit: ${visits}" th:if="${diagnose.getVisits().contains(visit)}"

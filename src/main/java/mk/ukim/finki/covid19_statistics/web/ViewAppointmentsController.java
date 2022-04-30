@@ -4,8 +4,10 @@ package mk.ukim.finki.covid19_statistics.web;
 import mk.ukim.finki.covid19_statistics.model.Doctor;
 import mk.ukim.finki.covid19_statistics.model.Patient;
 import mk.ukim.finki.covid19_statistics.model.Visit;
+import mk.ukim.finki.covid19_statistics.model.exceptions.CannotDeleteVisitException;
 import mk.ukim.finki.covid19_statistics.service.DoctorService;
 import mk.ukim.finki.covid19_statistics.service.PatientService;
+import mk.ukim.finki.covid19_statistics.service.ReferralService;
 import mk.ukim.finki.covid19_statistics.service.VisitService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,17 +22,23 @@ public class ViewAppointmentsController {
     private final PatientService patientService;
     private final DoctorService doctorService;
     private final VisitService visitService;
+    private final ReferralService referralService;
 
-    public ViewAppointmentsController(PatientService patientService, DoctorService doctorService, VisitService visitService) {
+    public ViewAppointmentsController(PatientService patientService, DoctorService doctorService, VisitService visitService, ReferralService referralService) {
         this.patientService = patientService;
         this.doctorService = doctorService;
         this.visitService = visitService;
+        this.referralService = referralService;
     }
 
     @GetMapping
     public String getAppointmentPage(@RequestParam(required = false) Long patientSsn,
                                      @RequestParam(required = false) Long doctorSsn,
-                                     Model model) {
+                                     Model model, @RequestParam(required = false) String error) {
+        if (error != null && !error.isEmpty()) {
+            model.addAttribute("hasError", true);
+            model.addAttribute("error", error);
+        }
 
         List<Doctor> doctorList = this.doctorService.findAll();
         List<Patient> patientList = this.patientService.findAll();
@@ -68,7 +76,11 @@ public class ViewAppointmentsController {
 
     @DeleteMapping("/{id}/delete")
     public String deleteAppointment(@PathVariable Long id) {
+        try{
         this.visitService.delete(id);
+        }catch (CannotDeleteVisitException exception){
+            return "redirect:/appointments?error=" + exception.getMessage();
+        }
         return "redirect:/appointments";
     }
 }

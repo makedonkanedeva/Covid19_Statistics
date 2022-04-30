@@ -1,19 +1,17 @@
 package mk.ukim.finki.covid19_statistics.service.impl;
 
+
 import mk.ukim.finki.covid19_statistics.model.*;
-import mk.ukim.finki.covid19_statistics.model.exceptions.DiagnosisNotFoundException;
-import mk.ukim.finki.covid19_statistics.model.exceptions.ReferralNotFoundException;
+
 import mk.ukim.finki.covid19_statistics.model.exceptions.VisitNotFoundException;
 import mk.ukim.finki.covid19_statistics.repository.DiagnosisRepository;
 import mk.ukim.finki.covid19_statistics.repository.VisitRepository;
 import mk.ukim.finki.covid19_statistics.service.DiagnosisService;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Service
 public class DiagnosisServiceImpl implements DiagnosisService {
@@ -90,6 +88,5 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         }
 
     }
-
 
 }

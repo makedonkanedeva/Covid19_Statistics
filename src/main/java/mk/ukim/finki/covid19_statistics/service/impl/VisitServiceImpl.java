@@ -2,10 +2,12 @@ package mk.ukim.finki.covid19_statistics.service.impl;
 
 import mk.ukim.finki.covid19_statistics.model.Doctor;
 import mk.ukim.finki.covid19_statistics.model.Patient;
+import mk.ukim.finki.covid19_statistics.model.Referral;
 import mk.ukim.finki.covid19_statistics.model.Visit;
 import mk.ukim.finki.covid19_statistics.model.exceptions.*;
 import mk.ukim.finki.covid19_statistics.repository.DoctorRepository;
 import mk.ukim.finki.covid19_statistics.repository.PatientRepository;
+import mk.ukim.finki.covid19_statistics.repository.ReferralRepository;
 import mk.ukim.finki.covid19_statistics.repository.VisitRepository;
 import mk.ukim.finki.covid19_statistics.service.VisitService;
 import org.springframework.stereotype.Service;
@@ -19,11 +21,13 @@ public class VisitServiceImpl implements VisitService {
     private final VisitRepository visitRepository;
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
+    private final ReferralRepository referralRepository;
 
-    public VisitServiceImpl(VisitRepository visitRepository, DoctorRepository doctorRepository, PatientRepository patientRepository) {
+    public VisitServiceImpl(VisitRepository visitRepository, DoctorRepository doctorRepository, PatientRepository patientRepository, ReferralRepository referralRepository) {
         this.visitRepository = visitRepository;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
+        this.referralRepository = referralRepository;
     }
 
     @Override
@@ -89,7 +93,7 @@ public class VisitServiceImpl implements VisitService {
     public Visit create(LocalDateTime term, String patientName, String patientSurname, Long patientSsn,
                         Long doctorSsn) {
 
-        if (term == null || patientSsn == null || patientSsn == 0 || patientName == null || patientName.isEmpty() ||
+        if (term == null || patientSsn == null  || patientName == null || patientName.isEmpty() ||
             patientSurname == null || patientSurname.isEmpty() || doctorSsn == null || doctorSsn == 0) {
             throw new InvalidArgumentException();
         }
@@ -117,7 +121,13 @@ public class VisitServiceImpl implements VisitService {
 
     @Override
     public Visit delete(Long id) {
-        Visit visit = this.visitRepository.findById(id).orElseThrow(()->new VisitNotFoundException());
+        Visit visit = this.visitRepository.findById(id).orElseThrow(VisitNotFoundException::new);
+        LocalDateTime visitTerm = visit.getTerm();
+        if(this.referralRepository.findAll().stream()
+                .filter(i -> i.getTerm().isEqual(visitTerm)).findFirst().isPresent()){
+            throw new CannotDeleteVisitException();
+        }
+        else
         this.visitRepository.delete(visit);
         return visit;
     }

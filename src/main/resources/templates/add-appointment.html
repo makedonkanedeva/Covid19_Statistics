@@ -45,6 +45,7 @@
                            name="ssn"
                            class="form-control"
                            id="ssn"
+                           required
                            placeholder="ЕМБГ на пациентот..."
                            th:value="(${visit} != null ? ${visit.getPatient().getSsn()} : '')"
                            data-rule="minlen:4"

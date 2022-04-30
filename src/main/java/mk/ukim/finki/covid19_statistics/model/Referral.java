@@ -6,6 +6,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Data
 @Entity
@@ -26,7 +27,11 @@ public class Referral {
 
     public Referral() {
     }
-
+    public String formatTime(LocalDateTime term){
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        String newTerm = term.format(format);
+        return newTerm;
+    }
     public Referral(LocalDateTime term, Patient ssnPatient, Doctor forwardBy, Doctor forwardTo) {
         this.term = term;
         this.ssnPatient = ssnPatient;

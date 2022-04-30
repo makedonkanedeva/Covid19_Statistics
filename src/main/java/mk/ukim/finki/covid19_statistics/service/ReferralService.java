@@ -2,6 +2,9 @@ package mk.ukim.finki.covid19_statistics.service;
 
 import mk.ukim.finki.covid19_statistics.model.Referral;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -14,4 +17,5 @@ public interface ReferralService {
     List<Referral> findAll();
     List<Referral> filter(Long patientSsn);
     Referral findById(Long id);
+    void export(HttpServletResponse response,Long idReferral) throws IOException;
 }

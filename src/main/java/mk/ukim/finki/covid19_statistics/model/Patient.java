@@ -32,9 +32,9 @@ public class Patient {
 
     public Patient() {
     }
-//    public String getNameAndSurname() {
-//        return name+ " "+surname;
-//    }
+    public String getNameAndSurname() {
+        return name+ " "+surname;
+    }
     public Patient(Long ssn, Long uhid, Doctor doctor, List<Referral> referrals, List<Visit> visits) {
         this.ssn = ssn;
         this.uhid = uhid;

@@ -19,6 +19,10 @@ public class ContactController {
     private JavaMailSender javaMailSender;
 
 
+
+
+
+
     @GetMapping
     private String getPage(@RequestParam(required = false) String success, Model model){
         if (success != null && !success.isEmpty()) {
