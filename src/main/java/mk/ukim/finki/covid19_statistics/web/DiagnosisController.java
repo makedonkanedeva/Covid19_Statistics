@@ -3,6 +3,7 @@ package mk.ukim.finki.covid19_statistics.web;
 import mk.ukim.finki.covid19_statistics.model.Diagnosis;
 
 import mk.ukim.finki.covid19_statistics.model.Visit;
+import mk.ukim.finki.covid19_statistics.model.exceptions.CannotDeleteDiagnosisException;
 import mk.ukim.finki.covid19_statistics.service.DiagnosisService;
 import mk.ukim.finki.covid19_statistics.service.VisitService;
 import org.springframework.stereotype.Controller;
@@ -25,7 +26,13 @@ public class DiagnosisController {
 
     }
     @GetMapping
-    public String getDiagnosisPage(@RequestParam(required = false) String diagnoseName, Model model){
+    public String getDiagnosisPage(@RequestParam(required = false) String diagnoseName,
+                                   @RequestParam(required = false) String error,
+                                   Model model){
+        if(error != null && !error.isEmpty()){
+            model.addAttribute("hasError", true);
+            model.addAttribute("error", error);
+        }
         List<Visit> visits = this.visitService.findAll();
         List<Diagnosis> diagnoses;
         if(diagnoseName == null || diagnoseName.isEmpty()) {
@@ -85,9 +92,13 @@ public class DiagnosisController {
     }
 
     @DeleteMapping("/{id}/delete")
-    public String deleteDiagnosis(@PathVariable Long id)
-    {
-        this.diagnosisService.delete(id);
-        return "redirect:/diagnoses";
+    public String deleteDiagnosis(@PathVariable Long id) {
+        try {
+            this.diagnosisService.delete(id);
+            return "redirect:/diagnoses";
+        } catch (CannotDeleteDiagnosisException exception){
+            return "redirect:/diagnoses?error=" + exception.getMessage();
+        }
+
     }
 }

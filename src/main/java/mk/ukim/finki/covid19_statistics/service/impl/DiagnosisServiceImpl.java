@@ -3,8 +3,10 @@ package mk.ukim.finki.covid19_statistics.service.impl;
 
 import mk.ukim.finki.covid19_statistics.model.*;
 
+import mk.ukim.finki.covid19_statistics.model.exceptions.CannotDeleteDiagnosisException;
 import mk.ukim.finki.covid19_statistics.model.exceptions.VisitNotFoundException;
 import mk.ukim.finki.covid19_statistics.repository.DiagnosisRepository;
+import mk.ukim.finki.covid19_statistics.repository.ReceiptRepository;
 import mk.ukim.finki.covid19_statistics.repository.VisitRepository;
 import mk.ukim.finki.covid19_statistics.service.DiagnosisService;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,12 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
     private final DiagnosisRepository diagnosisRepository;
     private final VisitRepository visitRepository;
+    private final ReceiptRepository receiptRepository;
 
-    public DiagnosisServiceImpl(DiagnosisRepository diagnosisRepository, VisitRepository visitRepository) {
+    public DiagnosisServiceImpl(DiagnosisRepository diagnosisRepository, VisitRepository visitRepository, ReceiptRepository receiptRepository) {
         this.diagnosisRepository = diagnosisRepository;
         this.visitRepository = visitRepository;
+        this.receiptRepository = receiptRepository;
     }
 
     @Override
@@ -73,6 +77,12 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     @Override
     public Diagnosis delete(Long id) {
         Diagnosis diagnosis = this.diagnosisRepository.findByDiagnoseId(id);
+        List<Receipt> receipts = this.receiptRepository.findAllByDiagnosis(diagnosis);
+
+        if(receipts.size() > 0){
+            throw new CannotDeleteDiagnosisException();
+        }
+
         this.diagnosisRepository.delete(diagnosis);
         return diagnosis;
     }

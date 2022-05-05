@@ -16,7 +16,7 @@ public class StatisticsController {
     @GetMapping
     public String getStatisticsPage(Model model) {
         model.addAttribute("bodyContent", "statistics");
-        ;
+
         LocalDate today = LocalDate.now();
 
         String formattedDate = today.format(DateTimeFormatter

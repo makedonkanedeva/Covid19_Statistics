@@ -10,6 +10,9 @@
         <button id="filter" type="submit">Пребарај</button>
       </form>
       <div class="row">
+        <div class="container mt-3">
+          <h6 class="text-danger" th:if="${hasError}" th:text="${error}"></h6>
+        </div>
         <div class="col-12" th:if="${referrals.size() > 0}">
           <div class="table-responsive">
             <table class="table table-striped">

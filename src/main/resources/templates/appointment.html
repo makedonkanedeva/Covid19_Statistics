@@ -3,15 +3,15 @@
 
 <section id="appointment" class="appointment section-bg">
     <div class="container">
-
+        <input id="id" type="hidden" name="id" th:value="(${visit} != null ? ${visit.getId()} : '')">
         <form class="form mt-5 m-lg-3 mb-5" id="filter-form">
             <input id="patientSsn" type="text" name="patientSsn" placeholder="ЕМБГ на пациент..."/>
             <input id="doctorSsn" type="text" name="doctorSsn" placeholder="ЕМБГ на доктор..."/>
             <button id="filter" type="submit">Пребарај</button>
         </form>
         <div class="container mb-4">
-            <div class="container text-danger">
-                <h4 th:if="${hasError}" th:text="${error}"></h4>
+            <div class="container mt-3">
+                <h6 class="text-danger" th:if="${hasError}" th:text="${error}"></h6>
             </div>
             <div class="row">
                 <div class="col-12" th:if="${visits.size() > 0}">
@@ -39,15 +39,26 @@
                                 <td th:text="${visit.getDoctor().getSpecialty().getName()}"></td>
                                 <td class="text-right">
                                     <th:block sec:authorize="hasRole('ROLE_ADMIN')">
-                                        <form th:action="@{'/appointments/{id}/delete' (id=${visit.getId()})}"
-                                              th:method="DELETE">
+                                        <form th:action="@{'/appointments/{id}/edit-form' (id=${visit.getId()})}">
                                             <button type="submit"
-                                                    class="btn btn-block btn-danger">
-                                                Избриши
+                                                    class="btn btn-block btn-dark edit-form">
+                                                Промени
                                             </button>
                                         </form>
                                     </th:block>
+                                        <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+                                            <form
+                                            th:action="@{'/appointments/{id}/delete' (id=${visit.getId()})}"
+                                            th:method="DELETE">
+                                                <button type="submit"
+                                                        class="btn btn-block btn-danger" >
+                                                    Избриши
+                                                </button>
+                                            </form>
+                                        </th:block>
                                 </td>
+
+
 
                             </tr>
                             </tbody>

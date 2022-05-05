@@ -5,6 +5,7 @@
       <div class="col-md-5">
         <form action="/doctors/add" method="POST">
           <div class="form-group">
+            <input th:value="(${doctor} != null ? ${doctor.getSsn()} : '')" required type="hidden" name="editSsn" class="form-control" id="date" placeholder="Датум..." data-rule="minlen:4" data-msg="Please enter at least 4 chars">
             <div class="form-group">
               <label for="name">Име</label>
               <input type="text"

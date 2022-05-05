@@ -2,9 +2,8 @@ package mk.ukim.finki.covid19_statistics.service.impl;
 
 import mk.ukim.finki.covid19_statistics.model.Doctor;
 import mk.ukim.finki.covid19_statistics.model.Specialty;
-import mk.ukim.finki.covid19_statistics.model.exceptions.DoctorWithSsnAlreadyExistsException;
-import mk.ukim.finki.covid19_statistics.model.exceptions.InvalidArgumentException;
-import mk.ukim.finki.covid19_statistics.model.exceptions.LicenceNumberAlreadyExistsException;
+import mk.ukim.finki.covid19_statistics.model.Visit;
+import mk.ukim.finki.covid19_statistics.model.exceptions.*;
 import mk.ukim.finki.covid19_statistics.repository.DoctorRepository;
 import mk.ukim.finki.covid19_statistics.repository.SpecialtyRepository;
 import mk.ukim.finki.covid19_statistics.repository.VisitRepository;
@@ -71,13 +70,13 @@ public class DoctorServiceImpl implements DoctorService {
         else if(doctorRepository.findByLicenceNumber(licenseNumber) != null){
             throw new LicenceNumberAlreadyExistsException();
         }
-        else if (specialtyRepository.findByName(specialtyName) == null) {
-            Specialty s = new Specialty(specialtyName);
-            specialtyRepository.save(s);
-            Doctor d = new Doctor(ssn, name, surname, licenseNumber, s);
-            doctorRepository.save(d);
-            return d;
-        }
+//        else if (specialtyRepository.findByName(specialtyName) == null) {
+//            Specialty s = new Specialty(specialtyName);
+//            specialtyRepository.save(s);
+//            Doctor d = new Doctor(ssn, name, surname, licenseNumber, s);
+//            doctorRepository.save(d);
+//            return d;
+//        }
         else{
             Specialty s = specialtyRepository.findByName(specialtyName);
             Doctor d = new Doctor(ssn, name, surname, licenseNumber, s);
@@ -89,26 +88,35 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional
-    @OnDelete(action = OnDeleteAction.CASCADE)
     public Doctor deleteBySsn(Long ssn) {
         Doctor d = this.doctorRepository.findBySsn(ssn);
+        List<Visit> visit = this.visitRepository.findByDoctor(d);
+        if(visit.size()>0){
+            throw new DoctorCannotBeDeletedException();
+        }else
         this.doctorRepository.delete(d);
-
-         return d;
+        return d;
     }
+
 
     @Override
     @Transactional
-    public Doctor edit(Long ssn, String name, String surname, Integer licenseNumber, String specialtyName) {
-        Doctor doctor = this.doctorRepository.findBySsn(ssn);
-        Specialty specialty = this.specialtyRepository.findByName(specialtyName);
-        doctor.setSsn(ssn);
-        doctor.setName(name);
-        doctor.setSurname(surname);
-        doctor.setLicenceNumber(licenseNumber);
-        doctor.setSpecialty(specialty);
-        this.doctorRepository.save(doctor);
-        return doctor;
+    public Doctor edit(Long editSsn, Long ssn, String name, String surname, Integer licenseNumber, String specialtyName) {
+        if (ssn == null || name == null || name.isEmpty() || surname == null || surname.isEmpty() || licenseNumber == null
+        || specialtyName == null || specialtyName.isEmpty()) {
+            throw new WrongDataEnteredException();
+        }
+        else {
+            Doctor doctor = this.doctorRepository.findBySsn(editSsn);
+            Specialty specialty = this.specialtyRepository.findByName(specialtyName);
+            doctor.setSsn(ssn);
+            doctor.setName(name);
+            doctor.setSurname(surname);
+            doctor.setLicenceNumber(licenseNumber);
+            doctor.setSpecialty(specialty);
+            this.doctorRepository.save(doctor);
+            return doctor;
+        }
     }
 
     @Override

@@ -1,33 +1,23 @@
 package mk.ukim.finki.covid19_statistics.service.impl;
 
 import com.lowagie.text.*;
-import com.lowagie.text.Font;
-import com.lowagie.text.pdf.BaseFont;
-import com.lowagie.text.pdf.PdfEncodings;
 import com.lowagie.text.pdf.PdfWriter;
 import mk.ukim.finki.covid19_statistics.model.Doctor;
 import mk.ukim.finki.covid19_statistics.model.Patient;
 import mk.ukim.finki.covid19_statistics.model.Referral;
+import mk.ukim.finki.covid19_statistics.model.Visit;
 import mk.ukim.finki.covid19_statistics.model.exceptions.*;
-import mk.ukim.finki.covid19_statistics.repository.DoctorRepository;
-import mk.ukim.finki.covid19_statistics.repository.PatientRepository;
-import mk.ukim.finki.covid19_statistics.repository.ReferralRepository;
-import mk.ukim.finki.covid19_statistics.repository.VisitRepository;
+import mk.ukim.finki.covid19_statistics.repository.*;
 import mk.ukim.finki.covid19_statistics.service.ReferralService;
 
-import org.apache.tomcat.util.buf.Utf8Encoder;
+import mk.ukim.finki.covid19_statistics.service.VisitService;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
-import static com.lowagie.text.FontFactory.*;
 
 @Service
 public class ReferralServiceImpl implements ReferralService {
@@ -36,12 +26,16 @@ public class ReferralServiceImpl implements ReferralService {
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
     private final VisitRepository visitRepository;
+    private final DiagnosisRepository diagnosisRepository;
+    private final VisitService visitService;
 
-    public ReferralServiceImpl(ReferralRepository referralRepository, DoctorRepository doctorRepository, PatientRepository patientRepository, VisitRepository visitRepository) {
+    public ReferralServiceImpl(ReferralRepository referralRepository, DoctorRepository doctorRepository, PatientRepository patientRepository, VisitRepository visitRepository, DiagnosisRepository diagnosisRepository, VisitService visitService) {
         this.referralRepository = referralRepository;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
         this.visitRepository = visitRepository;
+        this.diagnosisRepository = diagnosisRepository;
+        this.visitService = visitService;
     }
 
     @Override
@@ -58,7 +52,9 @@ public class ReferralServiceImpl implements ReferralService {
             throw new TermIsNotAllowedException();
         }
         if(visitRepository.findByTerm(term) != null){
-            throw new TermIsNotAvailableException(term);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            String formatDateTime = term.format(formatter);
+            throw new TermIsNotAvailableException(formatDateTime);
         }
         if(patientRepository.findBySsnAndNameAndSurname(patientSsn,patientName,patientSurname) == null)
         {
@@ -102,6 +98,16 @@ public class ReferralServiceImpl implements ReferralService {
         if(term.isBefore(LocalDateTime.now())){
             throw new TermIsNotAllowedException();
         }
+        Long idVisit = this.visitRepository.findAll().stream().filter(i->i.getTerm().isEqual(referral.getTerm())).findFirst().get().getId();
+        Visit visit = this.visitRepository.findById(idVisit).orElseThrow(VisitNotFoundException::new);
+        if(diagnosisRepository.findAll().stream().anyMatch(i->i.getVisits().contains(visit)))
+        {
+            if(term.isAfter(visit.getTerm())) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
+                String formatDateTime = term.format(formatter);
+                throw new TermIsNotAvailableException(formatDateTime);
+            }
+        }
         referral.setTerm(term);
         referral.setSsnPatient(patient);
         referral.setForwardBy(doctor);
@@ -113,7 +119,25 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     public Referral deleteById(Long id) {
         Referral referral = this.referralRepository.findById(id).orElseThrow(()-> new ReferralNotFoundException(id));
-        this.referralRepository.delete(referral);
+        LocalDateTime referralTerm = referral.getTerm();
+        if(this.visitRepository.findAll().stream()
+                .anyMatch(i -> i.getTerm().isEqual(referralTerm)))
+        {
+            Long idVisit = this.visitRepository.findAll().stream()
+                    .filter(i -> i.getTerm().isEqual(referralTerm)).findFirst().get().getId();
+            Visit visit = this.visitRepository.findById(idVisit).orElseThrow( () -> new VisitNotFoundException());
+            if(diagnosisRepository.findAll().stream().anyMatch(i->i.getVisits().contains(visit)))
+            {
+                throw new CannotDeleteVisitWithDiagnosisException();
+            }
+            else {
+                this.referralRepository.deleteById(id);
+                this.visitRepository.delete(visit);
+            }
+        }
+        else {
+            referralRepository.deleteById(id);
+        }
         return referral;
     }
 

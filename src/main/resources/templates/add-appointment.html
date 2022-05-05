@@ -6,14 +6,14 @@
             <p>Преку оваа форма можете да го резервирате вашиот термин кај посакуваниот доктор.</p>
         </div>
         <th:block sec:authorize="hasRole('ROLE_ADMIN')">
-            <form method="POST" role="form" class="php-email-form" action="/addByDoctor">
+            <form method="POST" role="form" class="php-email-form" action="/appointments/addByDoctor">
         </th:block>
-        <th:block sec:authorize="hasRole('USER')">
-            <form method="POST" role="form" class="php-email-form" action="/add">
+        <th:block >
+            <form sec:authorize="hasRole('USER')" method="POST" role="form" class="php-email-form" action="/add">
         </th:block>
             <div class="row w-50">
-                <input id="id" type="hidden" name="id" th:value="(${visit} != null ? ${visit.getId()} : '')">
                 <div class="col-md-12 form-group">
+                    <input id="id" type="hidden" name="id" th:value="(${visit} != null ? ${visit.getId()} : '')">
                     <label for="name">Име на пациент</label>
                     <input type="text"
                            name="name"

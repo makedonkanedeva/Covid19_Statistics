@@ -22,16 +22,12 @@ public class Diagnosis {
     private List<Visit> visits;
 
     private String description;
+
     public void setVisits(Visit visit){
         this.visits.remove(visits.size()-1);
         this.visits.add(visit);
     }
 
-    public String formatTime(LocalDateTime term){
-        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-        String newTerm = term.format(format);
-        return newTerm;
-    }
 
     public Diagnosis()
     {

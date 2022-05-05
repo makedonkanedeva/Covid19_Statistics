@@ -25,7 +25,7 @@
                         <option th:each="visit : ${visits}"
                                 th:value="${visit.getTerm()}"
                                 th:if="${visit.getTerm() < date}"
-                                th:text = "${visit.getTerm()}">
+                                th:text = "${visit.getTerm()} + ' - ' + ${visit.getDoctor().getNameAndSurname}">
                         </option>
                     </select>
                 </div>

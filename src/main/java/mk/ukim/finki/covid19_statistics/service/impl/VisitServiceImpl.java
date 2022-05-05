@@ -2,15 +2,13 @@ package mk.ukim.finki.covid19_statistics.service.impl;
 
 import mk.ukim.finki.covid19_statistics.model.Doctor;
 import mk.ukim.finki.covid19_statistics.model.Patient;
-import mk.ukim.finki.covid19_statistics.model.Referral;
 import mk.ukim.finki.covid19_statistics.model.Visit;
 import mk.ukim.finki.covid19_statistics.model.exceptions.*;
-import mk.ukim.finki.covid19_statistics.repository.DoctorRepository;
-import mk.ukim.finki.covid19_statistics.repository.PatientRepository;
-import mk.ukim.finki.covid19_statistics.repository.ReferralRepository;
-import mk.ukim.finki.covid19_statistics.repository.VisitRepository;
+import mk.ukim.finki.covid19_statistics.repository.*;
 import mk.ukim.finki.covid19_statistics.service.VisitService;
 import org.springframework.stereotype.Service;
+
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import java.time.LocalDateTime;
@@ -22,12 +20,14 @@ public class VisitServiceImpl implements VisitService {
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
     private final ReferralRepository referralRepository;
+    private final DiagnosisRepository diagnosisRepository;
 
-    public VisitServiceImpl(VisitRepository visitRepository, DoctorRepository doctorRepository, PatientRepository patientRepository, ReferralRepository referralRepository) {
+    public VisitServiceImpl(VisitRepository visitRepository, DoctorRepository doctorRepository, PatientRepository patientRepository, ReferralRepository referralRepository, DiagnosisRepository diagnosisRepository) {
         this.visitRepository = visitRepository;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
         this.referralRepository = referralRepository;
+        this.diagnosisRepository = diagnosisRepository;
     }
 
     @Override
@@ -99,10 +99,12 @@ public class VisitServiceImpl implements VisitService {
         }
         //TODO: To handle wrong name and surname exception
 
-        if (visitRepository.findByTerm(term) != null) {
-            throw new TermIsNotAvailableException(term);
+        if (visitRepository.findByTerm(term) != null && visitRepository.findByDoctorSsn(doctorSsn)!= null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
+            String formatDateTime = term.format(formatter);
+            throw new TermIsNotAvailableException(formatDateTime);
         }
-        if(term.isBefore(LocalDateTime.now())){
+        if(!term.isAfter(LocalDateTime.now()) && !term.isEqual(LocalDateTime.now())){
             throw new TermIsNotAllowedException();
         }
         if(patientRepository.findBySsnAndNameAndSurname(patientSsn,patientName,patientSurname) == null){
@@ -123,8 +125,12 @@ public class VisitServiceImpl implements VisitService {
     public Visit delete(Long id) {
         Visit visit = this.visitRepository.findById(id).orElseThrow(VisitNotFoundException::new);
         LocalDateTime visitTerm = visit.getTerm();
+        if(this.diagnosisRepository.findAll().stream()
+                .anyMatch(i -> i.getVisits().contains(visit))){
+            throw new CannotDeleteVisitWithDiagnosisException();
+        }
         if(this.referralRepository.findAll().stream()
-                .filter(i -> i.getTerm().isEqual(visitTerm)).findFirst().isPresent()){
+                .anyMatch(i -> i.getTerm().isEqual(visitTerm))){
             throw new CannotDeleteVisitException();
         }
         else
@@ -140,12 +146,36 @@ public class VisitServiceImpl implements VisitService {
     @Override
     public Visit edit(Long id, LocalDateTime term, String patientName, String patientSurname, Long patientSsn, Long doctorSsn) {
         Visit visit = this.visitRepository.findById(id).orElseThrow(() -> new VisitNotFoundException());
-        visit.setTerm(term);
+        if (term == null || patientSsn == null  || patientName == null || patientName.isEmpty() ||
+                patientSurname == null || patientSurname.isEmpty() || doctorSsn == null || doctorSsn == 0) {
+            throw new InvalidArgumentException();
+        }
+        if(referralRepository.findAll().stream().anyMatch(i->i.getTerm().isEqual(visit.getTerm()))){
+            throw new CannotEditVisitException();
+        }
+        if(patientRepository.findBySsnAndNameAndSurname(patientSsn,patientName,patientSurname) == null){
+            throw new PatientDoesNotExistException();
+        }
         Patient patient = this.patientRepository.findBySsn(patientSsn);
+        if(term.isBefore(LocalDateTime.now())){
+            throw new TermIsNotAllowedException();
+        }
+        if(diagnosisRepository.findAll().stream().anyMatch(i->i.getVisits().contains(visit)))
+        {
+            if(term.isAfter(visit.getTerm())) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                String formatDateTime = term.format(formatter);
+                throw new TermIsNotAvailableException(formatDateTime);
+            }
+        }
+
+
+        visit.setTerm(term);
         visit.setPatient(patient);
         Doctor doctor = this.doctorRepository.findBySsn(doctorSsn);
         visit.setDoctor(doctor);
         this.visitRepository.save(visit);
         return visit;
     }
+
 }

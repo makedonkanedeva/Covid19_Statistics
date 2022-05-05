@@ -12,15 +12,11 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
 @Controller
-@RequestMapping(value = { "/contact"})
+@RequestMapping("/contact")
 public class ContactController {
 
     @Autowired
     private JavaMailSender javaMailSender;
-
-
-
-
 
 
     @GetMapping
@@ -47,7 +43,16 @@ public class ContactController {
         msg.setTo("mojterminkovid19@gmail.com");
         msg.setSubject(String.format("Email from: %s", email));
         msg.setText(message);
+
+        SimpleMailMessage reply = new SimpleMailMessage();
+        reply.setFrom("mojterminkovid19@gmail.com");
+        reply.setTo(email);
+        reply.setSubject("Благодариме на интересот");
+        reply.setText("Почитувани, овој меил е испратен автоматски. Вашата порака моментално се разгледува. Ве молиме бидете трпеливи.");
+
         javaMailSender.send(msg);
+        javaMailSender.send(reply);
+
         return "redirect:/contact?success=" + "Thanks for filling out our form!";
         }
         catch (InvalidArgumentException ex)

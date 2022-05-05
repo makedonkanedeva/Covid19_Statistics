@@ -12,10 +12,13 @@
                     <button id="filter" type="submit">Пребарај</button>
             </form>
         </th:block>
-            <h5 class="text-center text-danger" th:text="${error}"></h5>
+
         </div>
 
         <div class="container mb-4">
+            <div class="container mt-3">
+                <h6 class="text-danger" th:if="${hasError}" th:text="${error}"></h6>
+            </div>
             <div class="row">
                 <div class="col-12" th:if="${doctors.size() > 0}">
                     <div class="table-responsive">

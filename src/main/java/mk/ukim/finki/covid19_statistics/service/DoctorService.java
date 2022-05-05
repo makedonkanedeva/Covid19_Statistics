@@ -15,7 +15,7 @@ public interface DoctorService {
     List<Doctor> findBySpecialty(String specialty);
     Doctor create(Long ssn, String name, String surname, Integer licenseNumber, String specialtyName);
     Doctor deleteBySsn(Long ssn);
-    Doctor edit(Long ssn, String name, String surname, Integer licenseNumber, String specialtyName);
-    List<Doctor> filter(/*String doctorName, String doctorSurname,*/ String specialty);
+    Doctor edit(Long editSsn, Long ssn, String name, String surname, Integer licenseNumber, String specialtyName);
+    List<Doctor> filter(String specialty);
     List<Doctor> filterByNameAndSurname(String doctorName, String doctorSurname);
 }

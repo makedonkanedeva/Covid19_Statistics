@@ -27,11 +27,7 @@ public class Referral {
 
     public Referral() {
     }
-    public String formatTime(LocalDateTime term){
-        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-        String newTerm = term.format(format);
-        return newTerm;
-    }
+
     public Referral(LocalDateTime term, Patient ssnPatient, Doctor forwardBy, Doctor forwardTo) {
         this.term = term;
         this.ssnPatient = ssnPatient;

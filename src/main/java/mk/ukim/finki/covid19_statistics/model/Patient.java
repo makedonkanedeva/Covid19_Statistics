@@ -24,22 +24,18 @@ public class Patient {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Doctor doctor;
 
-    @OneToMany
-    private List<Referral> referrals = new ArrayList<>();
 
-    @OneToMany
-    private List<Visit> visits = new ArrayList<>();
 
     public Patient() {
     }
     public String getNameAndSurname() {
         return name+ " "+surname;
     }
-    public Patient(Long ssn, Long uhid, Doctor doctor, List<Referral> referrals, List<Visit> visits) {
+    public Patient(Long ssn, String name, String surname, Long uhid, Doctor doctor) {
+        this.name = name;
+        this.surname = surname;
         this.ssn = ssn;
         this.uhid = uhid;
         this.doctor = doctor;
-        this.referrals = referrals;
-        this.visits = visits;
     }
 }

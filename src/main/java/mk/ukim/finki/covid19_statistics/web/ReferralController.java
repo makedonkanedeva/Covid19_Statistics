@@ -35,7 +35,13 @@ public class ReferralController {
 
 
     @GetMapping
-    public String getReferralPage(@RequestParam(required = false) Long patientSsn, Model model){
+    public String getReferralPage(@RequestParam(required = false) Long patientSsn,
+                                  @RequestParam(required = false) String error,
+                                  Model model){
+        if(error != null && !error.isEmpty()){
+            model.addAttribute("hasError", true);
+            model.addAttribute("error", error);
+        }
 
         List<Referral> referrals;
 
@@ -45,7 +51,8 @@ public class ReferralController {
         else{
             referrals = this.referralService.filter(patientSsn);
         }
-
+        model.addAttribute("hasError", true);
+        model.addAttribute("error",error);
         model.addAttribute("referrals", referrals);
         model.addAttribute("bodyContent", "referral");
 
@@ -65,7 +72,7 @@ public class ReferralController {
         return "master-template";
     }
     @PostMapping("/add")
-    public String getReferralPage(@RequestParam(required = false) Long id,
+    public String addReferral(@RequestParam(required = false) Long id,
                                   @RequestParam(required = false) String localDate,
                                   @RequestParam String patientName,
                                   @RequestParam String patientSurname,
@@ -77,6 +84,7 @@ public class ReferralController {
             try {
                 this.referralService.create(LocalDateTime.parse(localDate), patientName, patientSurname, patientSsn, doctorForward, doctorTo);
                 this.visitService.create(LocalDateTime.parse(localDate), patientName,patientSurname,patientSsn,doctorTo);
+                return "redirect:/referrals";
             }catch (WrongDataEnteredException | DoctorNotSelectedException| TermIsNotAllowedException|
                     PatientDoesNotExistException exception){
                 return "redirect:/referrals/add-referral?error=" +exception.getMessage();
@@ -85,19 +93,22 @@ public class ReferralController {
         else{
             try {
                 LocalDateTime referralTerm = this.referralService.findById(id).getTerm();
-                Long idVisit = this.visitService.findAll().stream()
-                        .filter(i -> i.getTerm().isEqual(referralTerm)).findFirst().get().getId();
-                this.visitService.
-                    edit(idVisit,LocalDateTime.parse(localDate), patientName,patientSurname,patientSsn,doctorTo);
+                    Long idVisit = this.visitService.findAll().stream()
+                            .filter(i -> i.getTerm().isEqual(referralTerm)).findFirst().get().getId();
                 this.referralService
                         .edit(id, LocalDateTime.parse(localDate), patientName, patientSurname, patientSsn, doctorForward, doctorTo);
-            }catch (WrongDataEnteredException | DoctorNotSelectedException |
-                    TermIsNotAllowedException| PatientDoesNotExistException exception){
-                return "redirect:/referrals/add-referral?error=" +exception.getMessage();
+                    this.visitService.
+                            edit(idVisit,LocalDateTime.parse(localDate), patientName,patientSurname,patientSsn,doctorTo);
+                    return "redirect:/referrals";
+
+                } catch (WrongDataEnteredException | DoctorNotSelectedException |
+                    TermIsNotAllowedException| PatientDoesNotExistException
+                    | InvalidArgumentException | TermIsNotAvailableException exception){
+                return "redirect:/referrals?error=" +exception.getMessage();
                 }
             }
 
-        return "redirect:/referrals";
+
     }
 
     @GetMapping("/{id}/edit-form")
@@ -112,18 +123,13 @@ public class ReferralController {
 
     @DeleteMapping("/{id}/delete")
     public String deleteReferral(@PathVariable Long id){
-        LocalDateTime referralTerm = this.referralService.findById(id).getTerm();
-       if(this.visitService.findAll().stream()
-               .filter(i -> i.getTerm().isEqual(referralTerm)).findFirst().isPresent())
-       {
-           Long idVisit = this.visitService.findAll().stream()
-                   .filter(i -> i.getTerm().isEqual(referralTerm)).findFirst().get().getId();
-           this.referralService.deleteById(id);
-           this.visitService.delete(idVisit);
-       }
-       else {
-           this.referralService.deleteById(id);
-       }
+
+        try {
+            this.referralService.deleteById(id);
+            }
+        catch (CannotDeleteVisitWithDiagnosisException exception){
+            return "redirect:/referrals?error=" + exception.getMessage();
+        }
         return "redirect:/referrals";
     }
 
@@ -131,6 +137,8 @@ public class ReferralController {
     @GetMapping("/{id}/pdf/generate")
     public void generatePDF(HttpServletResponse response, @PathVariable Long id) throws IOException {
         response.setContentType("application/pdf");
+
+
 
         Long patientEmbg = this.referralService.findById(id).getSsnPatient().getSsn();
 

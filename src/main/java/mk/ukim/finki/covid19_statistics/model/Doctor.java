@@ -15,7 +15,6 @@ public class Doctor {
 
     private String surname;
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer licenceNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
