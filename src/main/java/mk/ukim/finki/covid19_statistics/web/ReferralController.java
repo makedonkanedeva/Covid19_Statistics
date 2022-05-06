@@ -2,6 +2,7 @@ package mk.ukim.finki.covid19_statistics.web;
 
 import mk.ukim.finki.covid19_statistics.model.Doctor;
 import mk.ukim.finki.covid19_statistics.model.Referral;
+import mk.ukim.finki.covid19_statistics.model.Visit;
 import mk.ukim.finki.covid19_statistics.model.exceptions.*;
 import mk.ukim.finki.covid19_statistics.service.DoctorService;
 import mk.ukim.finki.covid19_statistics.service.PatientService;
@@ -95,10 +96,10 @@ public class ReferralController {
                 LocalDateTime referralTerm = this.referralService.findById(id).getTerm();
                     Long idVisit = this.visitService.findAll().stream()
                             .filter(i -> i.getTerm().isEqual(referralTerm)).findFirst().get().getId();
-                this.referralService
-                        .edit(id, LocalDateTime.parse(localDate), patientName, patientSurname, patientSsn, doctorForward, doctorTo);
-                    this.visitService.
-                            edit(idVisit,LocalDateTime.parse(localDate), patientName,patientSurname,patientSsn,doctorTo);
+                this.referralService.edit(id, LocalDateTime.parse(localDate), patientName, patientSurname, patientSsn, doctorForward, doctorTo);
+                Visit visit = this.visitService.findById(idVisit);
+                if(visit.getTerm().isEqual(referralTerm))
+                this.visitService.edit2(idVisit,LocalDateTime.parse(localDate), patientName,patientSurname,patientSsn,doctorTo);
                     return "redirect:/referrals";
 
                 } catch (WrongDataEnteredException | DoctorNotSelectedException |

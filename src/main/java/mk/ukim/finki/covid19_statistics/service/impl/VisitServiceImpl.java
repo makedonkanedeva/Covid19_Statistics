@@ -97,7 +97,6 @@ public class VisitServiceImpl implements VisitService {
             patientSurname == null || patientSurname.isEmpty() || doctorSsn == null || doctorSsn == 0) {
             throw new InvalidArgumentException();
         }
-        //TODO: To handle wrong name and surname exception
 
         if (visitRepository.findByTerm(term) != null && visitRepository.findByDoctorSsn(doctorSsn)!= null) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
@@ -152,6 +151,38 @@ public class VisitServiceImpl implements VisitService {
         }
         if(referralRepository.findAll().stream().anyMatch(i->i.getTerm().isEqual(visit.getTerm()))){
             throw new CannotEditVisitException();
+        }
+        if(patientRepository.findBySsnAndNameAndSurname(patientSsn,patientName,patientSurname) == null){
+            throw new PatientDoesNotExistException();
+        }
+        Patient patient = this.patientRepository.findBySsn(patientSsn);
+        if(term.isBefore(LocalDateTime.now())){
+            throw new TermIsNotAllowedException();
+        }
+        if(diagnosisRepository.findAll().stream().anyMatch(i->i.getVisits().contains(visit)))
+        {
+            if(term.isAfter(visit.getTerm())) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                String formatDateTime = term.format(formatter);
+                throw new TermIsNotAvailableException(formatDateTime);
+            }
+        }
+
+
+        visit.setTerm(term);
+        visit.setPatient(patient);
+        Doctor doctor = this.doctorRepository.findBySsn(doctorSsn);
+        visit.setDoctor(doctor);
+        this.visitRepository.save(visit);
+        return visit;
+    }
+
+    @Override
+    public Visit edit2(Long id, LocalDateTime term, String patientName, String patientSurname, Long patientSsn, Long doctorSsn) {
+        Visit visit = this.visitRepository.findById(id).orElseThrow(() -> new VisitNotFoundException());
+        if (term == null || patientSsn == null  || patientName == null || patientName.isEmpty() ||
+                patientSurname == null || patientSurname.isEmpty() || doctorSsn == null || doctorSsn == 0) {
+            throw new InvalidArgumentException();
         }
         if(patientRepository.findBySsnAndNameAndSurname(patientSsn,patientName,patientSurname) == null){
             throw new PatientDoesNotExistException();

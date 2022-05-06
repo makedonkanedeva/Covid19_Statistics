@@ -1,10 +1,7 @@
 package mk.ukim.finki.covid19_statistics.web;
 
 
-import mk.ukim.finki.covid19_statistics.model.Diagnosis;
-import mk.ukim.finki.covid19_statistics.model.Doctor;
-import mk.ukim.finki.covid19_statistics.model.Patient;
-import mk.ukim.finki.covid19_statistics.model.Visit;
+import mk.ukim.finki.covid19_statistics.model.*;
 import mk.ukim.finki.covid19_statistics.model.exceptions.*;
 import mk.ukim.finki.covid19_statistics.service.*;
 import org.springframework.stereotype.Controller;
@@ -45,6 +42,7 @@ public class ViewAppointmentsController {
         List<Patient> patientList = this.patientService.findAll();
         List<Visit> visitList;
         List<Diagnosis> diagnoses = this.diagnosisService.findAll();
+        List<Referral> referrals = this.referralService.findAll();
 
         if (patientSsn == null && doctorSsn == null) {
             visitList = this.visitService.findAll();
@@ -55,6 +53,7 @@ public class ViewAppointmentsController {
         model.addAttribute("doctors", doctorList);
         model.addAttribute("patients", patientList);
         model.addAttribute("visits", visitList);
+        model.addAttribute("referrals", referrals);
         model.addAttribute("diagnosis", diagnoses);
 
         model.addAttribute("bodyContent", "appointment");

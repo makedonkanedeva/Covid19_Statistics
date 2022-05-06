@@ -20,4 +20,5 @@ public interface VisitService {
     Visit delete(Long id);
     Visit findById(Long id);
     Visit edit(Long id,LocalDateTime term, String patientName, String patientSurname, Long patientSsn, Long doctorSsn);
+    Visit edit2(Long id,LocalDateTime term, String patientName, String patientSurname, Long patientSsn, Long doctorSsn);
 }
