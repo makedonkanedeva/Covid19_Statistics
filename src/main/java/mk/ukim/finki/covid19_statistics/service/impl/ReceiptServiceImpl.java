@@ -130,7 +130,7 @@ public class ReceiptServiceImpl implements ReceiptService {
 
 
 
-        Paragraph paragraph2 = new Paragraph("Информации за упатот: ");
+        Paragraph paragraph2 = new Paragraph("Информации за рецептот: ");
         Paragraph paragraph7 = new Paragraph("Терапија:" + therapy);
         Paragraph paragraph = new Paragraph("Пациент: " + patientNameAndSurname);
         Paragraph paragraph3 = new Paragraph("Термин: " + termVisit);
